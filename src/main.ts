@@ -36,6 +36,8 @@ appRoot.innerHTML = `
       <aside class="side-panel right-panel" id="side-right"></aside>
     </main>
 
+    <footer class="bottom-bar" id="bottom-bar"></footer>
+
     <div class="overlays-layer" id="overlays-layer"></div>
   </div>
 `;
@@ -47,6 +49,7 @@ const roomRenderer = new RoomRenderer(roomCanvas);
 const topHudEl = document.getElementById('top-hud')!;
 const sideLeftEl = document.getElementById('side-left')!;
 const sideRightEl = document.getElementById('side-right')!;
+const bottomBarEl = document.getElementById('bottom-bar')!;
 const phoneShellEl = document.getElementById('phone-shell')!;
 const phoneScreenEl = document.getElementById('phone-screen')!;
 const phoneDockEl = document.getElementById('phone-dock')!;
@@ -94,6 +97,7 @@ function renderAllUI(): void {
   hud.renderTopHud(topHudEl);
   hud.renderSideLeft(sideLeftEl);
   hud.renderSideRight(sideRightEl);
+  hud.renderBottomBar(bottomBarEl);
   hud.renderPhoneDock(phoneDockEl);
   hud.renderBonusDropButtons(bonusDropsEl);
   hud.renderOverlays(overlaysEl);

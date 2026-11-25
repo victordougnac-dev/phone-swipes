@@ -271,17 +271,122 @@ export class RoomRenderer {
       }
     }
 
-    // 8. Foreground First-Person Desk
+    // 8. Foreground First-Person Desk, Rug & Cozy Gamer Gear
+    // Hardwood floor & patterned bedroom rug peeking below front desk edge
+    g.fillStyle = '#24182e';
+    g.fillRect(0, 162, this.W, 18);
+    g.fillStyle = '#3b1d5e';
+    g.fillRect(36, 165, 248, 15);
+    g.fillStyle = '#6d28d9';
+    g.fillRect(42, 167, 236, 2);
+    g.fillStyle = '#f43f5e';
+    g.fillRect(54, 172, 212, 2);
+
+    // Desk slab & front bevel
     g.fillStyle = '#5c3b28';
-    g.fillRect(0, 120, this.W, 60);
+    g.fillRect(0, 120, this.W, 40);
+    g.fillStyle = '#42281a';
+    g.fillRect(0, 159, this.W, 4);
+    // Desk wood grain planks
+    g.fillStyle = '#6b452f';
+    g.fillRect(0, 130, this.W, 1);
+    g.fillRect(0, 143, this.W, 1);
+    g.fillRect(0, 154, this.W, 1);
     // Desk top highlight edge
-    g.fillStyle = '#7c5238';
-    g.fillRect(0, 120, this.W, 3);
-    // Desk mat in center
-    g.fillStyle = '#1e1b2e';
-    g.fillRect(88, 128, 144, 48);
+    g.fillStyle = '#85593e';
+    g.fillRect(0, 120, this.W, 2);
+
+    // Under-desk RGB glow line
+    const deskHue = feverActive ? (t * 240) % 360 : (t * 50) % 360;
+    g.fillStyle = `hsl(${deskHue}, 90%, 58%)`;
+    g.fillRect(0, 162, this.W, 1);
+
+    // Center Gamer Desk Mat with neon trim & grid pattern
+    g.fillStyle = '#151226';
+    g.fillRect(86, 127, 148, 32);
+    g.fillStyle = '#1d1936';
+    for (let gx = 92; gx < 228; gx += 12) {
+      g.fillRect(gx, 129, 1, 28);
+    }
     g.fillStyle = feverActive ? '#f43f5e' : '#38bdf8';
-    g.fillRect(88, 128, 144, 1);
+    g.fillRect(86, 127, 148, 1);
+    g.fillRect(86, 158, 148, 1);
+
+    // Left Desk: Mechanical RGB Keyboard + Sticky Note + Steaming Coffee Mug
+    g.fillStyle = '#0f172a';
+    g.fillRect(10, 141, 48, 14);
+    g.fillStyle = '#334155';
+    g.fillRect(11, 142, 46, 12);
+    for (let kx = 0; kx < 10; kx++) {
+      const kHue = (t * 90 + kx * 28) % 360;
+      g.fillStyle = `hsl(${kHue}, 85%, 64%)`;
+      g.fillRect(13 + kx * 4, 144, 3, 2);
+      g.fillRect(13 + kx * 4, 148, 3, 2);
+    }
+    // Spacebar
+    g.fillStyle = '#e2e8f0';
+    g.fillRect(22, 151, 20, 2);
+
+    // Sticky note pad & pen
+    g.fillStyle = '#fde047';
+    g.fillRect(62, 144, 10, 9);
+    g.fillStyle = '#ca8a04';
+    g.fillRect(64, 146, 6, 1);
+    g.fillRect(64, 149, 5, 1);
+
+    // Steaming coffee mug on coaster
+    g.fillStyle = '#334155';
+    g.fillRect(73, 151, 10, 3);
+    g.fillStyle = '#f8fafc';
+    g.fillRect(74, 143, 8, 9);
+    g.fillStyle = '#78350f';
+    g.fillRect(75, 144, 6, 2);
+    const steamOff = Math.floor(t * 4) % 3;
+    g.fillStyle = 'rgba(248,250,252,0.55)';
+    g.fillRect(76, 139 - steamOff, 1, 3);
+    g.fillRect(79, 138 - ((steamOff + 1) % 3), 1, 3);
+
+    // Right Desk: Gaming Mouse + Mousepad + Power Strip + Snack Bowl
+    g.fillStyle = '#1e293b';
+    g.fillRect(238, 141, 26, 16);
+    g.fillStyle = '#0f172a';
+    g.fillRect(246, 143, 10, 12);
+    g.fillStyle = feverActive ? '#f43f5e' : '#22d3ee';
+    g.fillRect(250, 145, 2, 4);
+
+    // Energy soda can + pixel snack bowl
+    g.fillStyle = '#ec4899';
+    g.fillRect(268, 142, 7, 11);
+    g.fillStyle = '#f8fafc';
+    g.fillRect(269, 145, 5, 3);
+    g.fillStyle = '#d97706';
+    g.fillRect(280, 145, 16, 9);
+    g.fillStyle = '#facc15';
+    g.fillRect(282, 143, 12, 3);
+    g.fillStyle = '#ef4444';
+    g.fillRect(285, 144, 2, 2);
+    g.fillRect(290, 144, 2, 2);
+
+    // Desk charging hub with blinking LEDs & cables
+    g.fillStyle = '#0f172a';
+    g.fillRect(300, 147, 15, 8);
+    g.fillStyle = Math.floor(t * 3) % 2 ? '#22c55e' : '#16a34a';
+    g.fillRect(303, 149, 2, 2);
+    g.fillStyle = Math.floor(t * 5) % 2 ? '#38bdf8' : '#1d4ed8';
+    g.fillRect(308, 149, 2, 2);
+
+    // Dual Desk Speakers flanking center mat (pulse with music or fever!)
+    const bass = (state.settings.musicEnabled || feverActive) ? Math.round(Math.abs(Math.sin(t * 10))) : 0;
+    for (const sx of [92, 214]) {
+      g.fillStyle = '#0f172a';
+      g.fillRect(sx, 112, 14, 18);
+      g.fillStyle = '#334155';
+      g.fillRect(sx + 2, 114, 10, 6);
+      g.fillStyle = '#475569';
+      g.fillRect(sx + 3 - bass, 121 - bass, 8 + bass * 2, 7 + bass);
+      g.fillStyle = feverActive ? '#f43f5e' : '#38bdf8';
+      g.fillRect(sx + 5, 123, 4, 3);
+    }
 
     // 9. Desk Decorations
     if (state.decor.lava_lamp) {

@@ -420,4 +420,43 @@ export class HudAndPanels {
       this.engine.emit();
     });
   }
+
+  private bottomBarSig = '';
+
+  public renderBottomBar(container: HTMLElement): void {
+    const s = this.engine.state;
+    const rank = this.engine.getViralityRank();
+    const followers = this.engine.getFollowers();
+    const phones = Object.values(s.farmPhones).reduce((a, b) => a + b, 0);
+    const decor = Object.values(s.decor).filter(Boolean).length;
+    const goal = this.engine.getNextGoalHint();
+    const autoRate = this.engine.getAutoScrollRatePerSec();
+
+    const html = `
+      <div class="bb-group">
+        <span class="bb-rank" style="color:${rank.color};border-color:${rank.color}">${rank.label}</span>
+        <span>👥 ${formatNumber(followers)} followers</span>
+        <span>👆 ${s.totalSwipes.toLocaleString()} swipes</span>
+      </div>
+      <div class="bb-group">
+        <span>📱 ${phones} Farm Phones</span>
+        <span>🤖 Auto ${autoRate.toFixed(1)}/s</span>
+        <span>🛋️ ${decor}/10 Decor</span>
+        <span>✨ x${this.engine.getGlobalMultiplier().toFixed(2)} Mult</span>
+      </div>
+      <div class="bb-group">
+        <button class="bb-goal-btn ${goal.ready ? 'ready' : ''}" id="bb-goal-btn">
+          ${goal.ready ? `✨ BUY ${goal.label} (${formatNumber(goal.cost)})` : `🎯 ${goal.label} (${goal.pct}%)`}
+        </button>
+      </div>
+    `;
+    if (html === this.bottomBarSig) return;
+    this.bottomBarSig = html;
+    container.innerHTML = html;
+
+    container.querySelector('#bb-goal-btn')?.addEventListener('click', () => {
+      this.engine.setShopSection(goal.goShop);
+      this.engine.setTab('shop');
+    });
+  }
 }
