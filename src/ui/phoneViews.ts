@@ -59,10 +59,24 @@ export class PhoneAppsView {
     return true;
   }
 
+  private lastScrollContext = '';
+
   public render(): void {
-    const tab = this.engine.state.activeTab;
-    const theme = APP_THEMES[this.engine.state.activeTheme] || APP_THEMES.classic;
+    const s = this.engine.state;
+    const tab = s.activeTab;
+    const theme = APP_THEMES[s.activeTheme] || APP_THEMES.classic;
     const vars = `--th-primary:${theme.primary};--th-accent:${theme.accent};--th-bg:${theme.screenBg};--th-card:${theme.cardBg};--th-text:${theme.text};--th-muted:${theme.muted};--th-border:${theme.border};`;
+
+    const contextKey = `${tab}|${s.activeShopSection}|${this.awardsSubtab}|${this.selectedMessageId ?? ''}`;
+    const prevScroll =
+      this.lastScrollContext === contextKey
+        ? (this.root.querySelector('.app-scroll')?.scrollTop ?? 0)
+        : 0;
+    const prevImportVal =
+      tab === 'settings'
+        ? ((this.root.querySelector('#import-input') as HTMLInputElement | null)?.value ?? '')
+        : '';
+    this.lastScrollContext = contextKey;
 
     if (tab === 'shop') {
       this.renderShop(vars);
@@ -76,6 +90,13 @@ export class PhoneAppsView {
       this.renderRebirth(vars);
     } else if (tab === 'settings') {
       this.renderSettings(vars);
+      const inp = this.root.querySelector('#import-input') as HTMLInputElement | null;
+      if (inp && prevImportVal) inp.value = prevImportVal;
+    }
+
+    if (prevScroll > 0) {
+      const nextScrollEl = this.root.querySelector('.app-scroll') as HTMLElement | null;
+      if (nextScrollEl) nextScrollEl.scrollTop = prevScroll;
     }
   }
 
