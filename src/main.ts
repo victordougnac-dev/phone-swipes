@@ -188,7 +188,7 @@ function loop(now: number): void {
     roomRenderer.render(dt, engine.state, engine.bonusDrops, engine.isFeverActive());
 
     artAnimTimer += dt;
-    if (artAnimTimer >= 0.22) {
+    if (artAnimTimer >= 0.11) {
       artAnimTimer = 0;
       swipesView.tickArt();
     }

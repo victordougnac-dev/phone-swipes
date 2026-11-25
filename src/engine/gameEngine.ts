@@ -53,6 +53,8 @@ export interface SwipeEventResult {
   combo: number;
   fever: boolean;
   isAuto: boolean;
+  isCrit: boolean;
+  streakJackpot: number;
 }
 
 export type EngineListener = () => void;
@@ -65,6 +67,7 @@ export class GameEngine {
   public comboTimer = 0;
   public surgeTimer = 0;
   public surgeMultiplier = 1;
+  public videoProgress = 0;
   public bonusDrops: BonusDrop[] = [];
   public toasts: ToastNotice[] = [];
   public offlineEarnedDp = 0;
@@ -74,8 +77,9 @@ export class GameEngine {
   private dropSeq = 1;
   private toastSeq = 1;
   private autoScrollAccum = 0;
-  private dropSpawnTimer = 14;
+  private dropSpawnTimer = 11;
   private saveAccum = 0;
+  private recentPostIds: string[] = [];
   private listeners: Set<EngineListener> = new Set();
   private onSwipeCallbacks: Set<(res: SwipeEventResult) => void> = new Set();
 
@@ -286,10 +290,47 @@ export class GameEngine {
     return this.combo >= 10;
   }
 
+  public isHyperViralActive(): boolean {
+    return this.combo >= 25;
+  }
+
   public getComboMultiplier(): number {
     const base = 1 + this.combo * 0.08;
-    const fever = this.isFeverActive() ? 1.5 : 1;
+    const fever = this.isHyperViralActive() ? 2.2 : this.isFeverActive() ? 1.6 : 1;
     return base * fever;
+  }
+
+  public getFollowers(): number {
+    return Math.floor(Math.pow(Math.max(0, this.state.lifetimeDp), 0.72) + this.state.totalSwipes * 3);
+  }
+
+  public getViralityRank(): { label: string; color: string } {
+    const f = this.getFollowers();
+    if (f >= 5000000) return { label: 'GOD OF SWIPES', color: '#2dd4bf' };
+    if (f >= 500000) return { label: 'EMPIRE MOGUL', color: '#facc15' };
+    if (f >= 75000) return { label: 'ALGO FAVORITE', color: '#f472b6' };
+    if (f >= 10000) return { label: 'VIRAL CREATOR', color: '#38bdf8' };
+    if (f >= 1500) return { label: 'FEED ADDICT', color: '#4ade80' };
+    if (f >= 200) return { label: 'MEME DEALER', color: '#a3e635' };
+    return { label: 'ROOKIE SCROLLER', color: '#94a3b8' };
+  }
+
+  public getNextGoalHint(): { label: string; cost: number; pct: number; ready: boolean; goShop: 'phone' | 'farm' } {
+    let best: { label: string; cost: number; goShop: 'phone' | 'farm' } | null = null;
+    for (const u of PHONE_UPGRADES) {
+      const cost = this.getPhoneUpgradeCost(u.id);
+      if (!best || cost < best.cost) best = { label: `${u.icon} ${u.name}`, cost, goShop: 'phone' };
+    }
+    for (const f of FARM_PHONES) {
+      const owned = this.state.farmPhones[f.id] || 0;
+      if (this.state.lifetimeDp >= f.unlockDp || owned > 0) {
+        const cost = this.getFarmPhoneBulkCost(f.id, 1);
+        if (!best || cost < best.cost) best = { label: `📲 ${f.name}`, cost, goShop: 'farm' };
+      }
+    }
+    const target = best!;
+    const pct = Math.min(100, Math.round((this.state.dp / Math.max(1, target.cost)) * 100));
+    return { ...target, pct, ready: this.state.dp >= target.cost };
   }
 
   public getSwipeBaseDp(): number {
@@ -398,19 +439,34 @@ export class GameEngine {
       pool = POST_TEMPLATES;
     }
 
-    const template = pool[Math.floor(Math.random() * pool.length)];
+    // Filter out recently seen videos so the feed never repeats back-to-back
+    const freshPool = pool.filter((p) => !this.recentPostIds.includes(p.id));
+    const pickPool = freshPool.length > 0 ? freshPool : pool.filter((p) => p.id !== this.currentPost?.id);
+    const finalPool = pickPool.length > 0 ? pickPool : pool;
+
+    const template = finalPool[Math.floor(Math.random() * finalPool.length)];
+    this.recentPostIds.push(template.id);
+    if (this.recentPostIds.length > 10) this.recentPostIds.shift();
+
     const variance = 0.85 + Math.random() * 0.35;
+    const likes = Math.floor(template.baseLikes * variance);
     return {
       ...template,
       instanceId: this.postSeq++,
-      likes: Math.floor(template.baseLikes * variance),
+      likes,
       liked: false,
       dpEarned: 0,
-      bonusTagged: Math.random() < 0.08 + this.state.phoneUpgrades.display * 0.02,
+      bonusTagged: Math.random() < 0.1 + this.state.phoneUpgrades.display * 0.025,
+      views: Math.floor(likes * (6 + Math.random() * 14)),
+      durationSec: 4 + (template.id.charCodeAt(template.id.length - 1) % 7),
     };
   }
 
   // ==================== PLAYER ACTIONS ====================
+
+  public isVideoInSweetSpot(): boolean {
+    return this.videoProgress >= 0.55 && this.videoProgress <= 0.88;
+  }
 
   public performSwipe(isAuto = false): SwipeEventResult {
     if (this.state.paused && !isAuto) {
@@ -420,13 +476,22 @@ export class GameEngine {
         combo: this.combo,
         fever: this.isFeverActive(),
         isAuto,
+        isCrit: false,
+        streakJackpot: 0,
       };
     }
 
-    // Advance feed
+    const sweetSpot = !isAuto && this.isVideoInSweetSpot();
+    const critChance = 0.08 + this.state.phoneUpgrades.display * 0.015;
+    const isCrit = !isAuto && (sweetSpot || Math.random() < critChance);
+
+    // Advance feed & reset video loop scrubber
     const discovered = this.nextPost;
     this.currentPost = discovered;
     this.nextPost = this.generatePost();
+    if (!isAuto) {
+      this.videoProgress = 0;
+    }
 
     // Update combo (manual swipes build combo fast, auto maintains slightly)
     const maxCombo = this.getMaxCombo();
@@ -446,9 +511,10 @@ export class GameEngine {
     const bonusPostMult = discovered.bonusTagged
       ? 1.5 + this.state.phoneUpgrades.display * 0.25
       : 1;
+    const critMult = isCrit ? 2.2 : 1;
     const autoBonus = isAuto ? 1 + this.state.techUpgrades.advanced_automation * 0.25 : 1;
 
-    const rawDp = this.getSwipeBaseDp() * rarityMult * comboMult * bonusPostMult * autoBonus;
+    const rawDp = this.getSwipeBaseDp() * rarityMult * comboMult * bonusPostMult * critMult * autoBonus;
     const dpGained = Math.max(1, Math.round(rawDp));
 
     discovered.dpEarned = dpGained;
@@ -457,6 +523,20 @@ export class GameEngine {
     this.state.totalSwipes += 1;
     this.state.runSwipes += 1;
     this.state.rarityCounts[discovered.rarity] = (this.state.rarityCounts[discovered.rarity] || 0) + 1;
+
+    // 20-Swipe Streak Jackpot!
+    let streakJackpot = 0;
+    if (!isAuto && this.state.totalSwipes % 20 === 0) {
+      streakJackpot = Math.max(25, Math.round(this.getSwipeBaseDp() * 14));
+      this.addDp(streakJackpot);
+      soundEngine.playBonus();
+      this.pushToast(
+        `${this.state.totalSwipes} SWIPES STREAK!`,
+        `DOPAMINE JACKPOT +${formatNumber(streakJackpot)} DP!`,
+        '#facc15',
+        '🎉'
+      );
+    }
 
     // Daily challenge progress
     this.advanceDaily('swipes', 1);
@@ -467,7 +547,7 @@ export class GameEngine {
 
     // Sound effects
     if (!isAuto) {
-      soundEngine.playSwipe(this.combo);
+      soundEngine.playSwipe(this.combo + (isCrit ? 6 : 0));
       if (discovered.rarity !== 'common') {
         soundEngine.playRarity(discovered.rarity);
       }
@@ -483,6 +563,8 @@ export class GameEngine {
       combo: this.combo,
       fever: this.isFeverActive(),
       isAuto,
+      isCrit,
+      streakJackpot,
     };
 
     for (const cb of this.onSwipeCallbacks) cb(result);
@@ -1089,6 +1171,10 @@ export class GameEngine {
     if (this.state.paused) return;
 
     this.state.playTimeSeconds += dt;
+
+    // Video playback loop scrubber
+    const dur = Math.max(3, this.currentPost?.durationSec || 5);
+    this.videoProgress = (this.videoProgress + dt / dur) % 1;
 
     // Combo decay
     if (this.combo > 0) {

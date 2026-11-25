@@ -111,7 +111,19 @@ export type PixelArtSceneId =
   | 'capybara_chill'
   | 'neon_dragon'
   | 'cyber_duck'
-  | 'void_eye';
+  | 'void_eye'
+  | 'laser_cat'
+  | 'car_drift'
+  | 'fireworks'
+  | 'dj_turntable'
+  | 'rocket_launch'
+  | 'slime_squish'
+  | 'karaoke_frog'
+  | 'pixel_aquarium'
+  | 'meteor_shower'
+  | 'speed_typer'
+  | 'toaster_pop'
+  | 'confetti_cannon';
 
 export interface PostTemplate {
   id: string;
@@ -133,6 +145,8 @@ export interface ActivePost extends PostTemplate {
   liked: boolean;
   dpEarned: number;
   bonusTagged: boolean;
+  views: number;
+  durationSec: number;
 }
 
 export interface RarityConfig {

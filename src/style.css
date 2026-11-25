@@ -833,7 +833,7 @@ body,
 
 .bonus-post-tag {
   position: absolute;
-  bottom: 5px;
+  bottom: 11px;
   right: 5px;
   background: #713f12;
   border: 1px solid #facc15;
@@ -841,6 +841,113 @@ body,
   font-family: var(--font-pixel);
   font-size: 7px;
   padding: 2px 5px;
+}
+
+.video-time-badge {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  background: rgba(9, 13, 26, 0.85);
+  border: 1px solid #334155;
+  color: #f8fafc;
+  font-family: var(--font-pixel);
+  font-size: 7px;
+  padding: 2px 5px;
+}
+
+.crit-zone-pill {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(9, 13, 26, 0.85);
+  border: 1px solid #475569;
+  color: #cbd5e1;
+  font-family: var(--font-pixel);
+  font-size: 6px;
+  padding: 2px 5px;
+}
+
+.crit-zone-pill.ready {
+  background: #713f12;
+  border-color: #facc15;
+  color: #fef08a;
+  animation: pulseReady 0.35s infinite alternate;
+}
+
+.video-scrub-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 5px;
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.video-scrub-sweet {
+  position: absolute;
+  left: 55%;
+  width: 33%;
+  top: 0;
+  bottom: 0;
+  background: rgba(250, 204, 21, 0.45);
+}
+
+.video-scrub-fill {
+  position: relative;
+  height: 100%;
+  width: 0%;
+  background: #38bdf8;
+  transition: width 0.09s linear;
+}
+
+.video-scrub-fill.sweet {
+  background: #facc15;
+  box-shadow: 0 0 8px #facc15;
+}
+
+.rank-pill {
+  font-size: 7px;
+  border: 1px solid;
+  padding: 2px 4px;
+  background: rgba(9, 13, 26, 0.7);
+}
+
+.next-goal-strip {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid var(--th-border);
+  color: var(--th-muted);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 7px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.next-goal-strip.ready {
+  background: #0b291c;
+  border-color: #4ade80;
+  color: #dcfce7;
+}
+
+.goal-tap {
+  color: #4ade80;
+  font-family: var(--font-pixel);
+  font-size: 7px;
+}
+
+.float-dp {
+  z-index: 45;
+  pointer-events: none;
+}
+
+.float-dp.crit {
+  font-size: 13px;
+  text-shadow: 2px 2px 0 #713f12, 0 0 10px #facc15;
 }
 
 .post-body {
