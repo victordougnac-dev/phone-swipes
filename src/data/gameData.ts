@@ -1096,6 +1096,21 @@ export function createInitialState(): GameState {
       particles: true,
       floatingNumbers: true,
       reducedMotion: false,
+      keybinds: {
+        swipePrimary: 'Space',
+        swipeSecondary: 'ArrowUp',
+        likePost: 'KeyL',
+        pause: 'KeyP',
+        mute: 'KeyM',
+      },
     },
   };
 }
+
+export const DEFAULT_KEYBINDS = {
+  swipePrimary: 'Space',
+  swipeSecondary: 'ArrowUp',
+  likePost: 'KeyL',
+  pause: 'KeyP',
+  mute: 'KeyM',
+} as const;

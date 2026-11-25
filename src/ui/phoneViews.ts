@@ -13,8 +13,19 @@ import {
   TECH_UPGRADES,
 } from '../data/gameData';
 import type { GameEngine } from '../engine/gameEngine';
-import type { AppThemeId, DecorId, FarmPhoneId, PhoneUpgradeId, PostCategory, PrestigeUpgradeId, Rarity, ShopSection, TechUpgradeId, AutomationId } from '../types/game';
+import type { AppThemeId, DecorId, FarmPhoneId, KeybindAction, PhoneUpgradeId, PostCategory, PrestigeUpgradeId, Rarity, ShopSection, TechUpgradeId, AutomationId } from '../types/game';
 import { formatNumber, formatTime } from '../utils/format';
+
+export function formatKeyCode(code: string): string {
+  if (code === 'Space') return 'SPACE';
+  if (code === 'ArrowUp') return '↑ UP';
+  if (code === 'ArrowDown') return '↓ DOWN';
+  if (code === 'ArrowLeft') return '← LEFT';
+  if (code === 'ArrowRight') return '→ RIGHT';
+  if (code.startsWith('Key')) return code.slice(3);
+  if (code.startsWith('Digit')) return code.slice(5);
+  return code;
+}
 
 export class PhoneAppsView {
   private root: HTMLElement;
@@ -24,10 +35,28 @@ export class PhoneAppsView {
   private confirmRebirth = false;
   private confirmHardReset = false;
   private importStatus = '';
+  private listeningKeybind: KeybindAction | null = null;
 
   constructor(root: HTMLElement, engine: GameEngine) {
     this.root = root;
     this.engine = engine;
+  }
+
+  public isListeningForKeybind(): boolean {
+    return this.listeningKeybind !== null;
+  }
+
+  public captureKeybind(code: string): boolean {
+    if (!this.listeningKeybind) return false;
+    if (code === 'Escape') {
+      this.listeningKeybind = null;
+      this.render();
+      return true;
+    }
+    const action = this.listeningKeybind;
+    this.listeningKeybind = null;
+    this.engine.setKeybind(action, code);
+    return true;
   }
 
   public render(): void {
@@ -663,6 +692,33 @@ export class PhoneAppsView {
             <button class="toggle-btn ${st.floatingNumbers ? 'on' : ''}" id="set-float">${st.floatingNumbers ? 'ON' : 'OFF'}</button>
           </div>
 
+          <div class="sub-head">⌨️ KEYBINDS</div>
+          <div class="keybinds-box">
+            ${(
+              [
+                ['swipePrimary', '👆 Swipe Next (Key 1)'],
+                ['swipeSecondary', '👆 Swipe Next (Key 2)'],
+                ['likePost', '❤️ Like Post'],
+                ['pause', '⏸ Pause / Resume'],
+                ['mute', '🔇 Mute Audio'],
+              ] as [KeybindAction, string][]
+            )
+              .map(([action, label]) => {
+                const isListening = this.listeningKeybind === action;
+                const code = st.keybinds[action];
+                return `
+                  <div class="setting-row">
+                    <span>${label}</span>
+                    <button class="keybind-btn ${isListening ? 'listening' : ''}" data-rebind="${action}">
+                      ${isListening ? 'PRESS KEY...' : formatKeyCode(code)}
+                    </button>
+                  </div>
+                `;
+              })
+              .join('')}
+            <button class="action-btn" id="btn-reset-keybinds">↺ Reset Keybinds (Space / ↑)</button>
+          </div>
+
           <div class="sub-head">💾 SAVE MANAGEMENT</div>
           <div class="save-actions">
             <button class="action-btn" id="btn-save-now">💾 Save Now</button>
@@ -703,6 +759,18 @@ export class PhoneAppsView {
     this.root.querySelector('#set-float')?.addEventListener('click', () =>
       this.engine.updateSettings({ floatingNumbers: !st.floatingNumbers })
     );
+
+    this.root.querySelectorAll('[data-rebind]').forEach((btn) =>
+      btn.addEventListener('click', () => {
+        const action = (btn as HTMLElement).dataset.rebind as KeybindAction;
+        this.listeningKeybind = this.listeningKeybind === action ? null : action;
+        this.render();
+      })
+    );
+    this.root.querySelector('#btn-reset-keybinds')?.addEventListener('click', () => {
+      this.listeningKeybind = null;
+      this.engine.resetKeybinds();
+    });
 
     this.root.querySelector('#btn-save-now')?.addEventListener('click', () => {
       this.engine.saveState();

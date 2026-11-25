@@ -3,6 +3,7 @@ import {
   ACHIEVEMENTS,
   APP_THEMES,
   AUTOMATION_UPGRADES,
+  DEFAULT_KEYBINDS,
   DECOR_ITEMS,
   FARM_PHONES,
   MESSAGES_LIST,
@@ -25,6 +26,7 @@ import type {
   DecorId,
   FarmPhoneId,
   GameState,
+  KeybindAction,
   PhoneUpgradeId,
   PostCategory,
   PrestigeUpgradeId,
@@ -123,7 +125,14 @@ export class GameEngine {
         achievements: { ...(parsed.achievements || {}) },
         milestonesClaimed: { ...(parsed.milestonesClaimed || {}) },
         messages: { ...(parsed.messages || {}) },
-        settings: { ...fresh.settings, ...(parsed.settings || {}) },
+        settings: {
+          ...fresh.settings,
+          ...(parsed.settings || {}),
+          keybinds: {
+            ...fresh.settings.keybinds,
+            ...(parsed.settings?.keybinds || {}),
+          },
+        },
         dailyChallenges: Array.isArray(parsed.dailyChallenges) ? parsed.dailyChallenges : [],
       };
 
@@ -1056,6 +1065,21 @@ export class GameEngine {
   public updateSettings(patch: Partial<GameState['settings']>): void {
     this.state.settings = { ...this.state.settings, ...patch };
     soundEngine.syncSettings(this.state.settings, this.state.paused);
+    this.emit();
+  }
+
+  public setKeybind(action: KeybindAction, code: string): void {
+    this.state.settings.keybinds = {
+      ...this.state.settings.keybinds,
+      [action]: code,
+    };
+    this.saveState();
+    this.emit();
+  }
+
+  public resetKeybinds(): void {
+    this.state.settings.keybinds = { ...DEFAULT_KEYBINDS };
+    this.saveState();
     this.emit();
   }
 

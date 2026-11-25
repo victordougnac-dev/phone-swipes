@@ -132,20 +132,33 @@ engine.onSwipe((res) => {
   }
 });
 
-// Keyboard controls (Space / ArrowUp / ArrowDown / W / S)
+// Keyboard controls (customizable via Settings -> Keybinds, defaults: Space & ArrowUp)
 window.addEventListener('keydown', (e) => {
   const activeTag = (document.activeElement as HTMLElement | null)?.tagName;
   if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') return;
 
-  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'ArrowDown' || e.code === 'KeyW' || e.code === 'KeyS') {
+  if (phoneAppsView.isListeningForKeybind()) {
+    e.preventDefault();
+    phoneAppsView.captureKeybind(e.code);
+    return;
+  }
+
+  const kb = engine.state.settings.keybinds;
+  if (e.code === kb.swipePrimary || e.code === kb.swipeSecondary) {
     if (engine.state.activeTab === 'swipes' && !engine.state.paused) {
       e.preventDefault();
       soundEngine.unlock();
       swipesView.triggerSwipe();
     }
-  } else if (e.code === 'KeyP') {
+  } else if (e.code === kb.likePost) {
+    if (engine.state.activeTab === 'swipes' && !engine.state.paused) {
+      e.preventDefault();
+      soundEngine.unlock();
+      engine.likeCurrentPost();
+    }
+  } else if (e.code === kb.pause) {
     engine.togglePause();
-  } else if (e.code === 'KeyM') {
+  } else if (e.code === kb.mute) {
     engine.toggleMute();
   }
 });

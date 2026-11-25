@@ -296,6 +296,21 @@ export interface MessageState {
   chosenIndex: number | null;
 }
 
+export type KeybindAction =
+  | 'swipePrimary'
+  | 'swipeSecondary'
+  | 'likePost'
+  | 'pause'
+  | 'mute';
+
+export interface KeybindsConfig {
+  swipePrimary: string;
+  swipeSecondary: string;
+  likePost: string;
+  pause: string;
+  mute: string;
+}
+
 export interface GameSettings {
   muted: boolean;
   sfxVolume: number;
@@ -305,6 +320,7 @@ export interface GameSettings {
   particles: boolean;
   floatingNumbers: boolean;
   reducedMotion: boolean;
+  keybinds: KeybindsConfig;
 }
 
 export interface GameState {

@@ -2,6 +2,7 @@ import { APP_THEMES, POST_CATEGORIES, RARITY_CONFIG } from '../data/gameData';
 import type { GameEngine, SwipeEventResult } from '../engine/gameEngine';
 import { renderPostPixelArt } from '../pixel/postArt';
 import { formatNumber } from '../utils/format';
+import { formatKeyCode } from './phoneViews';
 
 export class SwipesView {
   private root: HTMLElement;
@@ -203,7 +204,11 @@ export class SwipesView {
         </div>
 
         <div class="swipes-footer-hint">
-          ${autoRate > 0 ? `🤖 Auto: ${autoRate.toFixed(1)}/s` : 'Drag up, click SWIPE, or press Space'}
+          ${
+            autoRate > 0
+              ? `🤖 Auto: ${autoRate.toFixed(1)}/s`
+              : `Swipe, click, or press ${formatKeyCode(s.settings.keybinds.swipePrimary)} / ${formatKeyCode(s.settings.keybinds.swipeSecondary)}`
+          }
         </div>
       </div>
     `;

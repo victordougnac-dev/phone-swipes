@@ -1,22 +1,20 @@
 import type { GameSettings, Rarity } from '../types/game';
 
+type AudioSettings = Pick<GameSettings, 'muted' | 'sfxVolume' | 'musicEnabled' | 'musicVolume'>;
+
 class SoundEngine {
   private ctx: AudioContext | null = null;
   private musicTimer: number | null = null;
   private step = 0;
-  private settings: GameSettings = {
+  private settings: AudioSettings = {
     muted: false,
     sfxVolume: 0.7,
     musicEnabled: false,
     musicVolume: 0.35,
-    screenShake: true,
-    particles: true,
-    floatingNumbers: true,
-    reducedMotion: false,
   };
   private paused = false;
 
-  public syncSettings(settings: GameSettings, paused: boolean): void {
+  public syncSettings(settings: AudioSettings, paused: boolean): void {
     const prevMusic = this.settings.musicEnabled && !this.settings.muted && !this.paused;
     this.settings = { ...settings };
     this.paused = paused;
