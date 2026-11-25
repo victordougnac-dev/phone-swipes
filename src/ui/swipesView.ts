@@ -243,7 +243,11 @@ export class SwipesView {
         if ((e.target as HTMLElement).closest('button')) return;
         this.dragStartY = e.clientY;
         this.dragDeltaY = 0;
-        stage.setPointerCapture(e.pointerId);
+        try {
+          stage.setPointerCapture(e.pointerId);
+        } catch {
+          // Ignore pointer capture errors in sandboxed iframes
+        }
       });
 
       stage.addEventListener('pointermove', (e) => {

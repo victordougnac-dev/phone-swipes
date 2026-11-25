@@ -165,36 +165,39 @@ let uiSyncTimer = 0;
 let artAnimTimer = 0;
 
 function loop(now: number): void {
-  const dt = Math.min(0.1, Math.max(0.001, (now - lastTime) / 1000));
-  lastTime = now;
+  try {
+    const dt = Math.min(0.1, Math.max(0.001, (now - lastTime) / 1000));
+    lastTime = now;
 
-  engine.tick(dt);
-  hud.updateSmoothCounter(dt);
+    engine.tick(dt);
+    hud.updateSmoothCounter(dt);
 
-  roomRenderer.render(dt, engine.state, engine.bonusDrops, engine.isFeverActive());
+    roomRenderer.render(dt, engine.state, engine.bonusDrops, engine.isFeverActive());
 
-  artAnimTimer += dt;
-  if (artAnimTimer >= 0.22) {
-    artAnimTimer = 0;
-    swipesView.tickArt();
-  }
-
-  uiSyncTimer += dt;
-  if (dirtyUi || uiSyncTimer >= 0.25) {
-    // Only do full light refresh if dirty or periodic drop position / rate update
-    if (dirtyUi) {
-      dirtyUi = false;
-      renderAllUI();
-    } else {
-      hud.renderBonusDropButtons(bonusDropsEl);
-      if (engine.state.activeTab === 'swipes') {
-        swipesView.render();
-      }
-      if (engine.surgeTimer > 0) {
-        hud.renderTopHud(topHudEl);
-      }
+    artAnimTimer += dt;
+    if (artAnimTimer >= 0.22) {
+      artAnimTimer = 0;
+      swipesView.tickArt();
     }
-    uiSyncTimer = 0;
+
+    uiSyncTimer += dt;
+    if (dirtyUi || uiSyncTimer >= 0.25) {
+      if (dirtyUi) {
+        dirtyUi = false;
+        renderAllUI();
+      } else {
+        hud.renderBonusDropButtons(bonusDropsEl);
+        if (engine.state.activeTab === 'swipes') {
+          swipesView.render();
+        }
+        if (engine.surgeTimer > 0) {
+          hud.renderTopHud(topHudEl);
+        }
+      }
+      uiSyncTimer = 0;
+    }
+  } catch (err) {
+    console.error('Game loop error:', err);
   }
 
   requestAnimationFrame(loop);
